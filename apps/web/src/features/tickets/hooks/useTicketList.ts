@@ -6,6 +6,7 @@ import type {
   TicketFilters,
   TicketListItem,
 } from "../../../types/api";
+import debounce from "debounce";
 
 const DEBOUNCE_MS = 300;
 
@@ -53,9 +54,10 @@ export function useTicketList() {
   };
 
   useEffect(() => {
-    const handle = window.setTimeout(load, DEBOUNCE_MS);
+    const handle = debounce(load, DEBOUNCE_MS);
+    handle();
 
-    return () => window.clearTimeout(handle);
+    return () => handle.clear();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- filters object identity changes every render
   }, [
     filters.search,
