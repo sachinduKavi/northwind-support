@@ -57,7 +57,19 @@ export function useTicketList() {
 
     return () => window.clearTimeout(handle);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- filters object identity changes every render
-  }, [filters.search, filters.page, filters.pageSize]);
+  }, [
+    filters.search,
+    filters.page,
+    filters.pageSize,
+    filters.status,
+    filters.priority,
+    filters.categoryId,
+    filters.customerId,
+    filters.assignedAgentId,
+    filters.unassignedOnly,
+    filters.sortBy,
+    filters.sortDirection,
+  ]);
 
   const resetFilters = () => setFilters(emptyFilters);
 

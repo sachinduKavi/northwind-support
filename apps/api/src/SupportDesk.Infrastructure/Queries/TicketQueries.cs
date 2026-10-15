@@ -33,6 +33,15 @@ public sealed class TicketQueries(SupportDbContext db, IClock clock) : ITicketQu
         var items = await ApplySort(tickets, query)
             .Skip((query.Page - 1) * query.PageSize)
             .Take(query.PageSize)
+            .Where(x => (string.IsNullOrEmpty(query.Search) ||
+                x.Ticket.Title.Contains(query.Search) ||
+                x.Ticket.Reference.Contains(query.Search) ||
+                x.Customer.Name.Contains(query.Search)) &&
+                (query.Status == null || x.Ticket.Status == query.Status) &&
+                (query.Priority == null || x.Ticket.Priority == query.Priority) &&
+                (query.CategoryId == null || x.Ticket.CategoryId == query.CategoryId) &&
+                (query.CustomerId == null || x.Ticket.CustomerId == query.CustomerId) &&
+                (query.AssignedAgentId == null || x.Ticket.AssignedAgentId == query.AssignedAgentId))
             .Select(x => new TicketListItemDto
             {
                 Id = x.Ticket.Id,
@@ -142,6 +151,7 @@ public sealed class TicketQueries(SupportDbContext db, IClock clock) : ITicketQu
                 ? source.OrderByDescending(x => x.Ticket.CreatedAtUtc)
                 : source.OrderBy(x => x.Ticket.CreatedAtUtc)
         };
+
 
         // Keeps paging stable when the sort column has duplicates.
         return sorted.ThenByDescending(x => x.Ticket.Id);
