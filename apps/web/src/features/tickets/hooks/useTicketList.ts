@@ -1,12 +1,16 @@
-import { useEffect, useState } from 'react';
-import { ApiError } from '../../../api/client';
-import { ticketsApi } from '../../../api/tickets';
-import type { PagedResult, TicketFilters, TicketListItem } from '../../../types/api';
+import { useEffect, useState } from "react";
+import { ApiError } from "../../../api/client";
+import { ticketsApi } from "../../../api/tickets";
+import type {
+  PagedResult,
+  TicketFilters,
+  TicketListItem,
+} from "../../../types/api";
 
 const DEBOUNCE_MS = 300;
 
 export const emptyFilters: TicketFilters = {
-  search: '',
+  search: "",
   status: undefined,
   priority: undefined,
   categoryId: undefined,
@@ -15,8 +19,8 @@ export const emptyFilters: TicketFilters = {
   unassignedOnly: false,
   page: 1,
   pageSize: 20,
-  sortBy: 'createdAtUtc',
-  sortDirection: 'desc',
+  sortBy: "createdAtUtc",
+  sortDirection: "desc",
 };
 
 interface State {
@@ -37,7 +41,8 @@ export function useTicketList() {
       const data = await ticketsApi.getTickets(filters);
       setState({ isLoading: false, data, error: undefined });
     } catch (error) {
-      const message = error instanceof ApiError ? error.message : 'Unable to load tickets.';
+      const message =
+        error instanceof ApiError ? error.message : "Unable to load tickets.";
       setState((current) => ({ ...current, isLoading: false, error: message }));
     }
   };
@@ -49,8 +54,10 @@ export function useTicketList() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- filters object identity changes every render
   }, [filters.search, filters.page, filters.pageSize]);
 
-  const updateFilters = (patch: Partial<TicketFilters>) =>
+  const updateFilters = (patch: Partial<TicketFilters>) => {
+    console.log("This is working", patch);
     setFilters((current) => ({ ...current, ...patch, page: patch.page ?? 1 }));
+  };
 
   const resetFilters = () => setFilters(emptyFilters);
 
