@@ -13,6 +13,7 @@
     "web": "npm run dev --workspace apps/web",
     "build": "dotnet build && npm run build --workspace apps/web",
     "test": "dotnet test && npm run test --workspace apps/web",
+    "task1test": "npx vitest run apps/web/src/features/tickets/hooks/useTicketList.test.ts",
     "lint": "npm run lint --workspace apps/web",
     "format": "dotnet format",
     "format:check": "dotnet format --verify-no-changes",

@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import debounce from "debounce";
+import { useEffect, useMemo, useState } from "react";
 import { ApiError } from "../../../api/client";
 import { ticketsApi } from "../../../api/tickets";
 import type {
@@ -6,7 +7,6 @@ import type {
   TicketFilters,
   TicketListItem,
 } from "../../../types/api";
-import debounce from "debounce";
 
 const DEBOUNCE_MS = 300;
 
@@ -24,8 +24,9 @@ export const emptyFilters: TicketFilters = {
   sortDirection: "desc",
 };
 
-interface State {
-  isLoading: boolean;
+interface Result {
+  filters: TicketFilters;
+  reloadCount: number;
   data?: PagedResult<TicketListItem>;
   error?: string;
 }
@@ -33,47 +34,77 @@ interface State {
 /** Owns the ticket list's filters and the data they produce. */
 export function useTicketList() {
   const [filters, setFilters] = useState<TicketFilters>(emptyFilters);
-  const [state, setState] = useState<State>({ isLoading: true });
+  const [searchText, setSearchText] = useState(emptyFilters.search);
+  const [reloadCount, setReloadCount] = useState(0);
+  const [result, setResult] = useState<Result>();
 
-  const load = async () => {
-    setState((current) => ({ ...current, isLoading: true, error: undefined }));
+  const applySearch = useMemo(
+    () =>
+      debounce((search: string) => {
+        setFilters((current) =>
+          current.search === search ? current : { ...current, search, page: 1 },
+        );
+      }, DEBOUNCE_MS),
+    [],
+  );
 
-    try {
-      const data = await ticketsApi.getTickets(filters);
-      console.log("Loaded tickets", data, filters);
-      setState({ isLoading: false, data, error: undefined });
-    } catch (error) {
-      const message =
-        error instanceof ApiError ? error.message : "Unable to load tickets.";
-      setState((current) => ({ ...current, isLoading: false, error: message }));
+  useEffect(() => () => applySearch.clear(), [applySearch]);
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    ticketsApi.getTickets(filters).then(
+      (data) => {
+        if (isCurrent) setResult({ filters, reloadCount, data });
+      },
+      (error: unknown) => {
+        if (!isCurrent) return;
+        const message =
+          error instanceof ApiError ? error.message : "Unable to load tickets.";
+        setResult((current) => ({
+          filters,
+          reloadCount,
+          data: current?.data,
+          error: message,
+        }));
+      },
+    );
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [filters, reloadCount]);
+
+  const updateFilters = (patch: Partial<TicketFilters>) => {
+    const { search, ...rest } = patch;
+
+    if (search !== undefined) {
+      setSearchText(search);
+      applySearch(search);
+    }
+    if (Object.keys(rest).length > 0) {
+      setFilters((current) => ({ ...current, ...rest, page: rest.page ?? 1 }));
     }
   };
 
-  const updateFilters = (patch: Partial<TicketFilters>) => {
-    setFilters((current) => ({ ...current, ...patch, page: patch.page ?? 1 }));
+  const resetFilters = () => {
+    applySearch.clear();
+    setSearchText(emptyFilters.search);
+    setFilters(emptyFilters);
   };
 
-  useEffect(() => {
-    const handle = debounce(load, DEBOUNCE_MS);
-    handle();
+  const reload = () => setReloadCount((count) => count + 1);
 
-    return () => handle.clear();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- filters object identity changes every render
-  }, [
-    filters.search,
-    filters.page,
-    filters.pageSize,
-    filters.status,
-    filters.priority,
-    filters.categoryId,
-    filters.customerId,
-    filters.assignedAgentId,
-    filters.unassignedOnly,
-    filters.sortBy,
-    filters.sortDirection,
-  ]);
+  const isLoading =
+    result?.filters !== filters || result.reloadCount !== reloadCount;
 
-  const resetFilters = () => setFilters(emptyFilters);
-
-  return { filters, updateFilters, resetFilters, reload: load, ...state };
+  return {
+    filters: { ...filters, search: searchText },
+    updateFilters,
+    resetFilters,
+    reload,
+    isLoading,
+    data: result?.data,
+    error: isLoading ? undefined : result.error,
+  };
 }

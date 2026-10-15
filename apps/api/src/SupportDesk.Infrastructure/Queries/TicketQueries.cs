@@ -24,15 +24,7 @@ public sealed class TicketQueries(SupportDbContext db, IClock clock) : ITicketQu
     public async Task<PagedResult<TicketListItemDto>> GetPagedAsync(TicketQuery query, CancellationToken ct)
     {
         Console.WriteLine($"GetPagedAsync called with query: {query.Search}, {query.SortDirection}, page {query.Page}, pageSize {query.PageSize}");
-        var tickets = TicketsWithLabels();
-
-        var totalCount = await tickets.CountAsync(ct);
-
-        var now = clock.UtcNow;
-
-        var items = await ApplySort(tickets, query)
-            .Skip((query.Page - 1) * query.PageSize)
-            .Take(query.PageSize)
+        var tickets = TicketsWithLabels()
             .Where(x => (string.IsNullOrEmpty(query.Search) ||
                 x.Ticket.Title.Contains(query.Search) ||
                 x.Ticket.Reference.Contains(query.Search) ||
@@ -41,7 +33,15 @@ public sealed class TicketQueries(SupportDbContext db, IClock clock) : ITicketQu
                 (query.Priority == null || x.Ticket.Priority == query.Priority) &&
                 (query.CategoryId == null || x.Ticket.CategoryId == query.CategoryId) &&
                 (query.CustomerId == null || x.Ticket.CustomerId == query.CustomerId) &&
-                (query.AssignedAgentId == null || x.Ticket.AssignedAgentId == query.AssignedAgentId))
+                (query.AssignedAgentId == null || x.Ticket.AssignedAgentId == query.AssignedAgentId));
+
+        var totalCount = await tickets.CountAsync(ct);
+
+        var now = clock.UtcNow;
+
+        var items = await ApplySort(tickets, query)
+            .Skip((query.Page - 1) * query.PageSize)
+            .Take(query.PageSize)
             .Select(x => new TicketListItemDto
             {
                 Id = x.Ticket.Id,
