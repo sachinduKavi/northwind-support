@@ -39,6 +39,7 @@ export function useTicketList() {
 
     try {
       const data = await ticketsApi.getTickets(filters);
+      console.log("Loaded tickets", data, filters);
       setState({ isLoading: false, data, error: undefined });
     } catch (error) {
       const message =
@@ -47,17 +48,16 @@ export function useTicketList() {
     }
   };
 
+  const updateFilters = (patch: Partial<TicketFilters>) => {
+    setFilters((current) => ({ ...current, ...patch, page: patch.page ?? 1 }));
+  };
+
   useEffect(() => {
     const handle = window.setTimeout(load, DEBOUNCE_MS);
 
     return () => window.clearTimeout(handle);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- filters object identity changes every render
   }, [filters.search, filters.page, filters.pageSize]);
-
-  const updateFilters = (patch: Partial<TicketFilters>) => {
-    console.log("This is working", patch);
-    setFilters((current) => ({ ...current, ...patch, page: patch.page ?? 1 }));
-  };
 
   const resetFilters = () => setFilters(emptyFilters);
 

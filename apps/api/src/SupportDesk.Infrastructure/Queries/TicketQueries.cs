@@ -23,6 +23,7 @@ public sealed class TicketQueries(SupportDbContext db, IClock clock) : ITicketQu
     /// </remarks>
     public async Task<PagedResult<TicketListItemDto>> GetPagedAsync(TicketQuery query, CancellationToken ct)
     {
+        Console.WriteLine($"GetPagedAsync called with query: {query.Search}, {query.SortDirection}, page {query.Page}, pageSize {query.PageSize}");
         var tickets = TicketsWithLabels();
 
         var totalCount = await tickets.CountAsync(ct);
@@ -121,6 +122,8 @@ public sealed class TicketQueries(SupportDbContext db, IClock clock) : ITicketQu
     {
         var descending = !string.Equals(query.SortDirection, "asc", StringComparison.OrdinalIgnoreCase);
 
+
+        Console.WriteLine($"Applying sort: {query.Search} {(descending ? "descending" : "ascending")}");
         var sorted = query.SortBy?.ToLowerInvariant() switch
         {
             "updatedatutc" => descending

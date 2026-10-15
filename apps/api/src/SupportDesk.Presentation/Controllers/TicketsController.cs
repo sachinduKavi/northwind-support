@@ -19,8 +19,10 @@ public sealed class TicketsController : ControllerBase
     public Task<PagedResult<TicketListItemDto>> Search(
         [FromQuery] TicketQuery query,
         [FromServices] SearchTicketsQueryHandler handler,
-        CancellationToken ct) =>
-        handler.HandleAsync(query, ct);
+        CancellationToken ct)
+    {
+        return handler.HandleAsync(query, ct);
+    }
 
     /// <summary>Returns one ticket.</summary>
     [HttpGet("{id:int}")]
