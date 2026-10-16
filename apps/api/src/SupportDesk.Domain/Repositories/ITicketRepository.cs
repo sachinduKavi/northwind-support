@@ -15,4 +15,8 @@ public interface ITicketRepository
     Task<string> NextReferenceAsync(CancellationToken ct);
 
     Task AddAsync(Ticket ticket, CancellationToken ct);
+
+    Task<bool> ExistsAsync(int id, CancellationToken ct);
+
+    Task AddEscalationAsync(TicketEscalation escalation, CancellationToken ct);
 }
