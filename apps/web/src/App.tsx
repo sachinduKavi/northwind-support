@@ -1,7 +1,10 @@
 import { Link, NavLink, Outlet } from 'react-router-dom';
+import { useAuth } from './features/auth/authContext';
 
 /** Application shell: the header, the navigation, and wherever the router puts the page. */
 export function App() {
+  const { agent, logout } = useAuth();
+
   return (
     <div className="app">
       <header className="app__header">
@@ -13,6 +16,15 @@ export function App() {
           <NavLink to="/tickets">Tickets</NavLink>
           <NavLink to="/customers">Customers</NavLink>
         </nav>
+
+        {agent && (
+          <div className="app__session">
+            <span>Signed in as {agent.fullName}</span>
+            <button type="button" className="button button--ghost" onClick={logout}>
+              Log out
+            </button>
+          </div>
+        )}
       </header>
 
       <main className="app__main">

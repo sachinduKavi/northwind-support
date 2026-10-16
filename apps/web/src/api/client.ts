@@ -1,4 +1,11 @@
+import { currentSession } from '../features/auth/session';
 import type { ProblemDetails } from '../types/api';
+
+let unauthorizedHandler: () => void = () => undefined;
+
+export function setUnauthorizedHandler(handler: () => void): void {
+  unauthorizedHandler = handler;
+}
 
 /**
  * Where the API lives. In development this stays '/api' and the Vite dev server proxies it
@@ -30,13 +37,20 @@ export class ApiError extends Error {
  * {@link ApiError} that callers can show to the user.
  */
 export async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const token = currentSession()?.token;
+
   const response = await fetch(`${baseUrl}${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(init?.headers ?? {}),
     },
   });
+
+  if (response.status === 401 && token) {
+    unauthorizedHandler();
+  }
 
   if (!response.ok) {
     const problem = await readProblem(response);

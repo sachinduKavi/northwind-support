@@ -455,3 +455,16 @@ textarea[aria-invalid='true'] {
   margin-top: 1rem;
   padding-top: 1rem;
 }
+
+.login {
+  margin: 4rem auto;
+  max-width: 24rem;
+  padding: 0 1rem;
+}
+
+.app__session {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+  margin-left: auto;
+}
