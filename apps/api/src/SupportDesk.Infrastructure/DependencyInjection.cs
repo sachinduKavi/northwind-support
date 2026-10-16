@@ -31,6 +31,9 @@ public static class DependencyInjection
 
         services.AddSingleton<IClock, SystemClock>();
 
+        services.AddSingleton<IPasswordHasher, IdentityPasswordHasher>();
+        services.AddSingleton<ITokenIssuer, JwtTokenIssuer>();
+
         services.AddScoped<ITicketRepository, TicketRepository>();
         services.AddScoped<IAgentRepository, AgentRepository>();
         services.AddScoped<ICustomerRepository, CustomerRepository>();

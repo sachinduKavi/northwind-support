@@ -39,6 +39,8 @@ public sealed class Agent : AggregateRoot
 
     public DateTime CreatedAtUtc { get; private set; }
 
+    public string? PasswordHash { get; private set; }
+
     /// <summary>The ticket categories this agent is qualified for.</summary>
     public IReadOnlyCollection<AgentSpecialization> Specializations => _specializations;
 
@@ -55,4 +57,11 @@ public sealed class Agent : AggregateRoot
 
     /// <summary>Stops the agent from taking new work. Their history is kept.</summary>
     public void Deactivate() => IsActive = false;
+
+    public void SetPasswordHash(string passwordHash)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(passwordHash);
+
+        PasswordHash = passwordHash;
+    }
 }

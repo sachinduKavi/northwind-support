@@ -33,6 +33,8 @@ var slaSettings = builder.Configuration.GetSection(SlaOptions.SectionName).Get<S
 
 builder.Services.AddSingleton(slaSettings);
 
+builder.Services.AddJwtAuthentication(builder.Configuration);
+
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
@@ -50,6 +52,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors(FrontendCorsPolicy);
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 
