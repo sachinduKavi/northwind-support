@@ -45,6 +45,8 @@ public sealed class Ticket : AggregateRoot
 
     public DateTime? ResolvedAtUtc { get; private set; }
 
+    public DateTime? SlaStartedAtUtc { get; private set; }
+
     /// <summary>True while the ticket still needs work from an agent.</summary>
     public bool IsOpen => Status is not (TicketStatus.Resolved or TicketStatus.Closed);
 
@@ -110,5 +112,61 @@ public sealed class Ticket : AggregateRoot
     {
         AssignedAgentId = agentId;
         UpdatedAtUtc = nowUtc;
+    }
+
+    public void StartSlaWindow(TimeSpan window, DateTime startedAtUtc)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(window, TimeSpan.Zero);
+
+        SlaStartedAtUtc = startedAtUtc;
+        DueAtUtc = startedAtUtc.Add(window);
+        UpdatedAtUtc = startedAtUtc;
+    }
+
+    public TicketPriority PriorityAfterEscalation()
+    {
+        if (!IsOpen)
+        {
+            throw new BusinessRuleViolationException(
+                $"Ticket {Reference} is {Status} and cannot be escalated.");
+        }
+
+        if (Priority == TicketPriority.Critical)
+        {
+            throw new BusinessRuleViolationException(
+                $"Ticket {Reference} is already {TicketPriority.Critical} and cannot be escalated further.");
+        }
+
+        return Priority + 1;
+    }
+
+    public TicketEscalation Escalate(
+        TimeSpan newWindow,
+        int? agentId,
+        string reason,
+        string escalatedBy,
+        DateTime nowUtc)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(newWindow, TimeSpan.Zero);
+
+        var toPriority = PriorityAfterEscalation();
+
+        var escalation = new TicketEscalation(
+            Id,
+            Priority,
+            toPriority,
+            AssignedAgentId,
+            agentId,
+            DueAtUtc,
+            nowUtc.Add(newWindow),
+            reason,
+            escalatedBy,
+            nowUtc);
+
+        Priority = toPriority;
+        AssignedAgentId = agentId;
+        StartSlaWindow(newWindow, nowUtc);
+
+        return escalation;
     }
 }

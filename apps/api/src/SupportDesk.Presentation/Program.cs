@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using SupportDesk.Application;
+using SupportDesk.Application.Configuration;
 using SupportDesk.Infrastructure;
 using SupportDesk.Presentation.Extensions;
 using SupportDesk.Presentation.Filters;
@@ -26,6 +27,11 @@ builder.Services.AddCors(options => options.AddPolicy(
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+var slaSettings = builder.Configuration.GetSection(SlaOptions.SectionName).Get<SlaOptions>()?.ToSettings()
+    ?? throw new InvalidOperationException($"The '{SlaOptions.SectionName}' configuration section is missing.");
+
+builder.Services.AddSingleton(slaSettings);
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
