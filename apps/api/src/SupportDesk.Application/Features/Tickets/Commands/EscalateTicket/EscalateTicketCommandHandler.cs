@@ -17,7 +17,11 @@ public sealed class EscalateTicketCommandHandler(
     GetTicketQueryHandler getTicket,
     ILogger<EscalateTicketCommandHandler> logger)
 {
-    public async Task<EscalationResultDto> HandleAsync(int id, EscalateTicketRequest request, CancellationToken ct)
+    public async Task<EscalationResultDto> HandleAsync(
+        int id,
+        EscalateTicketRequest request,
+        string escalatedBy,
+        CancellationToken ct)
     {
         var ticket = await tickets.GetByIdAsync(id, ct) ?? throw new NotFoundException("Ticket", id);
 
@@ -27,7 +31,7 @@ public sealed class EscalateTicketCommandHandler(
             decision.Window.Length,
             decision.Assignment.AgentId,
             request.Reason,
-            request.EscalatedBy,
+            escalatedBy,
             clock.UtcNow);
 
         await tickets.AddEscalationAsync(escalation, ct);
