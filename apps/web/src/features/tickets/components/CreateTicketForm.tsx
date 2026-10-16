@@ -4,9 +4,9 @@ import { ticketsApi } from '../../../api/tickets';
 import { Field } from '../../../components/Field';
 import type {
   Category,
+  CreatedTicket,
   CreateTicketPayload,
   CustomerListItem,
-  TicketDetail,
   TicketPriority,
 } from '../../../types/api';
 
@@ -15,7 +15,7 @@ const priorities: TicketPriority[] = ['Low', 'Medium', 'High', 'Critical'];
 interface CreateTicketFormProps {
   customers: CustomerListItem[];
   categories: Category[];
-  onCreated: (ticket: TicketDetail) => void;
+  onCreated: (created: CreatedTicket) => void;
 }
 
 interface FormState {
