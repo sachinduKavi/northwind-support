@@ -18,6 +18,7 @@ export const emptyFilters: TicketFilters = {
   customerId: undefined,
   assignedAgentId: undefined,
   unassignedOnly: false,
+  slaStatus: undefined,
   page: 1,
   pageSize: 20,
   sortBy: "createdAtUtc",
